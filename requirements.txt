@@ -9,5 +9,6 @@ markdownify
 langgraph==0.6.6
 fake_useragent
 litellm[proxy]
+colorama
 ddgs
 uuid
