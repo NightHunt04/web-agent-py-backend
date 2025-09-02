@@ -1,0 +1,13 @@
+fastapi[standard]
+pydantic-settings
+pymongo
+upstash-redis
+litellm==1.75.6
+playwright==1.54.0
+playwright-stealth==2.0.0
+markdownify
+langgraph==0.6.6
+fake_useragent
+litellm[proxy]
+ddgs
+uuid
