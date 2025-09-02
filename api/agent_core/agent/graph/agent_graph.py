@@ -137,9 +137,6 @@ class AgentGraph:
             tool_response = result.tool_response
             scraped_data_accumulator = result.scraped_data_accumulator
 
-        # writer = get_stream_writer()
-        # await writer(f"Tool name: {tool_name}\nTool args: {tool_args}\nTool response: {tool_response}")
-
         page_state_dict = {}
         try:
             dom_state = await self._executor.dom.get_state()
@@ -161,7 +158,7 @@ class AgentGraph:
         all_actions.append(new_action)
 
         # screenshot at each step
-        if state.get('screenshot_each_step') and tool_name in ["click_element", "click_and_type_text", "inject_code", "scroll_site", "navigate", "press_key", "wait"]:
+        if state.get('screenshot_each_step') and tool_name in ["click_element", "click_and_type_text", "inject_code", "scroll_site", "navigate", "press_key"]:
             screenshot_bytes = await self._executor._page.screenshot() 
             screenshot_base64 = base64.b64encode(screenshot_bytes).decode('utf-8')
         else:

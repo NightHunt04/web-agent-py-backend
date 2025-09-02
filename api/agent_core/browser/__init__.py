@@ -58,8 +58,8 @@ class Browser:
         if self.ws_endpoint:
             browser_instance = await self.playwright.chromium.connect(
                 self.ws_endpoint, 
-                timeout=30000, 
-                slow_mo=self.slow_mo
+                timeout = 1230000, 
+                slow_mo = self.slow_mo
             )
     
             self.browser_context = await browser_instance.new_context(

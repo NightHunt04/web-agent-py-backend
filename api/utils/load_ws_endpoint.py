@@ -1,10 +1,8 @@
-from upstash_redis import Redis
 from ..core.config import settings
+from ..db.redis import redis
 
 def load_ws_endpoint():
     try:
-        redis = Redis(url=settings.UPSTASH_REDIS_REST_URL, token=settings.UPSTASH_REDIS_REST_TOKEN)
-
         ws_map = redis.json.get("ws-endpoints", "$")
         ws_map = ws_map[0]
 
