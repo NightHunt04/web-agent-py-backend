@@ -4,6 +4,7 @@ from api.routers.agent import router as agent_router
 from contextlib import asynccontextmanager
 from api.core.config import settings
 from api.db.mongo import db
+import uvicorn
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -34,4 +35,6 @@ app.include_router(agent_router)
 @app.get("/")
 def root():
     return { "status": "ok" }
-
+    
+if __name__ == "__main__":
+    uvicorn.run("main:app")
