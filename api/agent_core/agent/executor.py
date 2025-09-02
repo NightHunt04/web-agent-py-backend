@@ -14,7 +14,7 @@ import os
 
 # These tools wont be available for the agent
 # The name of the tools must be the same, i.e. the name of the file of the tool
-IGNORE_TOOLS = ['scroll_and_scrape', 'get_html', 'get_markdown', 'get_html']
+IGNORE_TOOLS = ['scroll_and_scrape', 'get_html', 'get_markdown']
 
 class ToolExecutionResult(BaseModel):
     tool_response: List | Dict | str | None

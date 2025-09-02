@@ -1,9 +1,3 @@
-import asyncio
-import sys
-
-if sys.platform == 'win32':
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.routers.agent import router as agent_router
@@ -40,3 +34,4 @@ app.include_router(agent_router)
 @app.get("/")
 def root():
     return { "status": "ok" }
+
