@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     UPSTASH_REDIS_REST_URL: str
     UPSTASH_REDIS_REST_TOKEN: str
     UPSTASH_REDIS_TCP_URL: str
+    RATE_LIMIT_BYPASS_KEY: str
 
     BROWSER_POOL_SIZE: int = 3
     RATE_LIMIT_AGENT_REQUESTS: int = 1
