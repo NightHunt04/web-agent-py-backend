@@ -2,7 +2,6 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
-from api.dependencies.bypass_rate_limit_test import rate_limiter_bypass
 from api.routers.agent import router as agent_router
 from contextlib import asynccontextmanager
 from api.core.config import settings
@@ -45,7 +44,6 @@ app.add_middleware(
 
 app.include_router(
     agent_router, 
-    dependencies=[Depends(rate_limiter_bypass)]
     # dependencies = [Depends(RateLimiter(
     #     times = settings.RATE_LIMIT_AGENT_REQUESTS, 
     #     seconds = settings.RATE_LIMIT_AGENT_REQUESTS_TIME
