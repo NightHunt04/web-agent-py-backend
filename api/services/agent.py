@@ -16,7 +16,7 @@ async def run_agent_stream(request: Request, payload: AgentRequest):
         if ws_endpoint is None:
             raise HTTPException(status_code = 503, detail="All browser instances are busy")
 
-        add_running_task(task_id = payload.uuid)
+        await add_running_task(task_id = payload.uuid)
 
         browser = Browser(ws_endpoint = ws_endpoint)
 
@@ -61,7 +61,7 @@ async def run_agent_stream(request: Request, payload: AgentRequest):
             except Exception as e:
                 yield f"{json.dumps({"type": "error", "data": str(e)}, ensure_ascii=False)}\n"
             finally:
-                remove_running_task(task_id = payload.uuid)
+                await remove_running_task(task_id = payload.uuid)
                 update_ws_traffic(ws_endpoint, decrement=True)
                 print("Stream completed")
                 yield f"{json.dumps({"type": "done", "data": "Stream completed"}, ensure_ascii=False)}\n\n"
