@@ -2,9 +2,10 @@ from pydantic import BaseModel
 from typing import Optional, Dict, Any
 
 class AgentRequest(BaseModel):
+    uuid: str
     prompt: str
     scraper_schema: Optional[Dict[str, Any]] = None
-    api_key: Optional[str] = None
+    api_key: str
     wait_between_actions: int = 1
     max_tokens: int = 19334
     temperature: float = 0.4

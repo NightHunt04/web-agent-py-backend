@@ -12,16 +12,16 @@ load_dotenv()
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    await db.connect()
-    print("Mongo DB connected")
+    # await db.connect()
+    # print("Mongo DB connected")
     redis_connection = redis.from_url(settings.UPSTASH_REDIS_TCP_URL)
     await FastAPILimiter.init(redis_connection)
     print("Redis connected for rate limiter")
     
     yield
     
-    await db.disconnect()
-    print("Mongo DB disconnected")
+    # await db.disconnect()
+    # print("Mongo DB disconnected")
     await redis_connection.close()
     print("Redis disconnected")
     await FastAPILimiter.close()
@@ -44,10 +44,10 @@ app.add_middleware(
 
 app.include_router(
     agent_router, 
-    # dependencies = [Depends(RateLimiter(
-    #     times = settings.RATE_LIMIT_AGENT_REQUESTS, 
-    #     seconds = settings.RATE_LIMIT_AGENT_REQUESTS_TIME
-    # ))]
+    dependencies = [Depends(RateLimiter(
+        times = settings.RATE_LIMIT_AGENT_REQUESTS, 
+        seconds = settings.RATE_LIMIT_AGENT_REQUESTS_TIME
+    ))]
 )
 
 @app.get("/")

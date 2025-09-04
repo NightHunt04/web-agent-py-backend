@@ -6,6 +6,7 @@ from ..agent_core.models.gemini import GeminiProvider
 from ..agent_core.agent.agent import Agent
 from ..utils.load_ws_endpoint import load_ws_endpoint
 from ..utils.update_ws_traffic import update_ws_traffic
+from ..utils.concurrent_tasks import add_running_task, remove_running_task
 import asyncio
 import json
 
@@ -13,9 +14,12 @@ async def run_agent_stream(request: Request, payload: AgentRequest):
     try:
         ws_endpoint = load_ws_endpoint()
         if ws_endpoint is None:
-            raise HTTPException(status_code=503, detail="All browser instances are busy")
+            raise HTTPException(status_code = 503, detail="All browser instances are busy")
+
+        add_running_task(task_id = payload.uuid)
 
         browser = Browser(ws_endpoint = ws_endpoint)
+
         model = GeminiProvider(
             api_key = payload.api_key, 
             model = payload.model,
@@ -24,13 +28,14 @@ async def run_agent_stream(request: Request, payload: AgentRequest):
             temperature = payload.temperature, 
             top_p = payload.top_p
         )
+
         agent = Agent(
             browser = browser, 
             model = model, 
             scraper_response_json_format = payload.scraper_schema
         )
 
-        update_ws_traffic(ws_endpoint, increment=True)
+        update_ws_traffic(ws_endpoint, increment = True)
 
         async def event_stream():
             try:
@@ -56,6 +61,7 @@ async def run_agent_stream(request: Request, payload: AgentRequest):
             except Exception as e:
                 yield f"{json.dumps({"type": "error", "data": str(e)}, ensure_ascii=False)}\n"
             finally:
+                remove_running_task(task_id = payload.uuid)
                 update_ws_traffic(ws_endpoint, decrement=True)
                 print("Stream completed")
                 yield f"{json.dumps({"type": "done", "data": "Stream completed"}, ensure_ascii=False)}\n\n"

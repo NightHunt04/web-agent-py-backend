@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     RATE_LIMIT_BYPASS_KEY: str
 
     BROWSER_POOL_SIZE: int = 3
+    MAX_CONCURRENT_TASKS: int = 5
     RATE_LIMIT_AGENT_REQUESTS: int = 1
     RATE_LIMIT_AGENT_REQUESTS_TIME: int = 60
 
