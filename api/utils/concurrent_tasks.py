@@ -1,13 +1,13 @@
 from ..db.redis import redis
 
-async def add_running_task(task_id: str):
+def add_session(ip: str):
     try:
-        await redis.sadd("running-tasks", task_id)
+        redis.sadd("running-sessions", ip)
     except Exception as e:
-        print(f"Error adding task to running-tasks: {e}")
+        print(f"Error adding ip to running-sessions: {e}")
 
-async def remove_running_task(task_id: str):
+def remove_session(ip: str):
     try:
-        await redis.srem("running-tasks", task_id)
+        redis.srem("running-sessions", ip)
     except Exception as e:
-        print(f"Error removing task from running-tasks: {e}")
+        print(f"Error removing ip from running-sessions: {e}")
