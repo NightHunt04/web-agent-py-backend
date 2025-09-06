@@ -8,6 +8,7 @@ from ..utils.load_ws_endpoint import load_ws_endpoint
 from ..utils.update_ws_traffic import update_ws_traffic
 from ..utils.concurrent_tasks import add_session, remove_session
 import asyncio
+import time
 import json
 
 async def run_agent_stream(request: Request, payload: AgentRequest):
@@ -40,11 +41,11 @@ async def run_agent_stream(request: Request, payload: AgentRequest):
 
         async def event_stream():
             try:
-                yield f"{json.dumps({"type": "browser-init", "data": "Initializing browser..."}, ensure_ascii=False)}\n"
+                yield f"{json.dumps({"type": "browser_init", "data": "Initializing browser..."}, ensure_ascii=False)}\n"
                 await browser.init_browser()
-                yield f"{json.dumps({"type": "browser-init", "data": "Browser initialized"}, ensure_ascii=False)}\n"
+                yield f"{json.dumps({"type": "browser_init_done", "data": "Browser initialized"}, ensure_ascii=False)}\n"
 
-                yield f"{json.dumps({"type": "agent-start", "data": "Running agent..."}, ensure_ascii=False)}\n"
+                yield f"{json.dumps({"type": "agent_start", "data": "Running agent..."}, ensure_ascii=False)}\n"
                 async for update in agent.arun(
                     query = payload.prompt,
                     verbose = True,

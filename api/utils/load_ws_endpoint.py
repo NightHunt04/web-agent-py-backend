@@ -22,7 +22,6 @@ def load_ws_endpoint():
                 lowest_traffic_ws = val['ws_endpoint']
         
         return lowest_traffic_ws
-
     except Exception as e:
         print(f"Error loading ws-endpoints from Redis: {e}")
         return None

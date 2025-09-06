@@ -83,15 +83,23 @@ class Agent(BaseAgent):
             screenshot_each_step = screenshot_each_step,
             screenshot_base64 = None
         )
+
+        prev_iteration = -1
         
         # Stream graph states
         try:
             async for chunk in graph.astream(
                 initial_state, { 'recursion_limit': self.max_iterations }, 
                 stream_mode = 'updates'
-            ):
+            ):  
                 # yield iteration count at every chunk
-                yield json.dumps({"type": "iteration", "data": self._executor._iterations}, ensure_ascii=False)
+                if prev_iteration != self._executor._iterations:
+                    yield json.dumps({"type": "iteration", "data": self._executor._iterations}, ensure_ascii=False)
+                    prev_iteration = self._executor._iterations
+
+                url = self.browser.page.url
+                if url:
+                    yield json.dumps({"type": "url", "data": url}, ensure_ascii=False)
                 
                 for node_name, node_output in chunk.items():
                     if not node_output: 
