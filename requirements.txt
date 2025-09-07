@@ -1,6 +1,5 @@
 fastapi[standard]
 pydantic-settings
-pymongo
 upstash-redis==1.4.0
 litellm==1.75.6
 playwright==1.54.0

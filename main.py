@@ -5,23 +5,20 @@ from fastapi_limiter.depends import RateLimiter
 from api.routers.agent import router as agent_router
 from contextlib import asynccontextmanager
 from api.core.config import settings
-from api.db.mongo import db
 import redis.asyncio as redis
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import requests
 from dotenv import load_dotenv
 load_dotenv()
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    # await db.connect()
-    # print("Mongo DB connected")
     redis_connection = redis.from_url(settings.UPSTASH_REDIS_TCP_URL)
     await FastAPILimiter.init(redis_connection)
     print("Redis connected for rate limiter")
     
     yield
     
-    # await db.disconnect()
-    # print("Mongo DB disconnected")
     await redis_connection.close()
     print("Redis disconnected")
     await FastAPILimiter.close()
@@ -50,6 +47,27 @@ app.include_router(
     ))]
 )
 
+BROWSER_INSTANCE_URLS = [
+    'https://playwright-browser-instance.onrender.com/',
+    'https://playwright-browser-instance-1.onrender.com/'
+]
+
 @app.get("/")
 def root():
-    return { "status": "ok" }
+    results = {}
+
+    with ThreadPoolExecutor(max_workers=len(BROWSER_INSTANCE_URLS)) as executor:
+        future_to_url = {executor.submit(requests.get, url, timeout=200.0): url for url in BROWSER_INSTANCE_URLS}
+        for future in as_completed(future_to_url):
+            url = future_to_url[future]
+            print(f"Waking up the browser instance at {url}...")
+            try:
+                resp = future.result()
+                if resp.text.strip() == "Running":
+                    results[url] = "Running"
+                else:
+                    results[url] = f"Not running. Response: {resp.text}"
+            except Exception as e:
+                results[url] = f"Error: {str(e)}"
+
+    return { "status": "ok", "browser_instances": results }

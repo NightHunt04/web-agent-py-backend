@@ -8,7 +8,6 @@ from ..utils.load_ws_endpoint import load_ws_endpoint
 from ..utils.update_ws_traffic import update_ws_traffic
 from ..utils.concurrent_tasks import add_session, remove_session
 import asyncio
-import time
 import json
 
 async def run_agent_stream(request: Request, payload: AgentRequest):
