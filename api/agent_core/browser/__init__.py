@@ -1,3 +1,4 @@
+import asyncio
 from playwright.async_api import (
     Page, 
     Playwright, 
@@ -31,7 +32,7 @@ class Browser:
         self.user_agent = user_agent
         self.random_user_agent = random_user_agent
         self.playwright: Playwright = None
-        self.browser_instance: Browser = None
+        self.browser_instance: Browser | None = None
         self.browser_context: BrowserContext = None
         self.page: Page = None
         self.ws_endpoint = ws_endpoint
@@ -56,13 +57,23 @@ class Browser:
         self.playwright = await async_playwright().start()
 
         if self.ws_endpoint:
-            browser_instance = await self.playwright.chromium.connect(
-                self.ws_endpoint, 
-                timeout = 1230000, 
-                slow_mo = self.slow_mo
-            )
+            for _ in range(10):
+                try:
+                    browser_instance = await self.playwright.chromium.connect(
+                        self.ws_endpoint, 
+                        timeout = 1230000, 
+                        slow_mo = self.slow_mo
+                    )
+                    self.browser_instance = browser_instance
+                    break
+                except Exception as e:
+                    print(f"Browser not ready yet: {e}")
+                    await asyncio.sleep(3)
+            
+            else:
+                raise RuntimeError("Failed to connect to browser instance")
     
-            self.browser_context = await browser_instance.new_context(
+            self.browser_context = await self.browser_instance.new_context(
                 user_agent = self.user_agent
             )
 
