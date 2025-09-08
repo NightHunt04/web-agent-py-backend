@@ -5,9 +5,10 @@ from fastapi_limiter.depends import RateLimiter
 from api.routers.agent import router as agent_router
 from contextlib import asynccontextmanager
 from api.core.config import settings
+from api.utils.cold_start import wait_for_browser
 import redis.asyncio as redis
 from concurrent.futures import ThreadPoolExecutor, as_completed
-import requests
+import asyncio
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -53,21 +54,25 @@ BROWSER_INSTANCE_URLS = [
 ]
 
 @app.get("/")
-def root():
-    results = {}
+async def root():
+    try:
+        print("Waking up browser instances...")
+        tasks = [wait_for_browser(url) for url in BROWSER_INSTANCE_URLS]
+        results_list = await asyncio.gather(*tasks)
+        results = dict(zip(BROWSER_INSTANCE_URLS, results_list))
+        print("Browser instances woken up.")
+        return {"status": "ok", "browser_instances": results}
+    except Exception as e:
+        print(f"Error waking up browser instances: {e}")
+        return {"status": "error", "message": str(e)}
 
-    with ThreadPoolExecutor(max_workers=len(BROWSER_INSTANCE_URLS)) as executor:
-        future_to_url = {executor.submit(requests.get, url, timeout=200.0): url for url in BROWSER_INSTANCE_URLS}
-        for future in as_completed(future_to_url):
-            url = future_to_url[future]
-            print(f"Waking up the browser instance at {url}...")
-            try:
-                resp = future.result()
-                if resp.text.strip() == "Running":
-                    results[url] = "Running"
-                else:
-                    results[url] = f"Not running. Response: {resp.text}"
-            except Exception as e:
-                results[url] = f"Error: {str(e)}"
+    # results = {}
 
-    return { "status": "ok", "browser_instances": results }
+    # with ThreadPoolExecutor(max_workers=len(BROWSER_INSTANCE_URLS)) as executor:
+    #     future_to_url = {executor.submit(wait_for_browser, url): url for url in BROWSER_INSTANCE_URLS}
+    #     for future in as_completed(future_to_url):
+    #         url = future_to_url[future]
+    #         print(f"Waking up the browser instance at {url}...")
+    #         results[url] = future.result()
+    
+    # return { "status": "ok", "browser_instances": results }
