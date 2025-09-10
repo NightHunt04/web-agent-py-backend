@@ -50,7 +50,7 @@ app.include_router(
 
 BROWSER_INSTANCE_URLS = [
     'https://playwright-browser-instance.onrender.com/',
-    'https://playwright-browser-instance-1.onrender.com/'
+    # 'https://playwright-browser-instance-1.onrender.com/'
 ]
 
 @app.get("/")
