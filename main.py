@@ -8,7 +8,7 @@ from api.core.config import settings
 from api.utils.cold_start import wait_for_browser
 import redis.asyncio as redis
 from concurrent.futures import ThreadPoolExecutor, as_completed
-import asyncio
+import asyncio, time, requests
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -55,16 +55,34 @@ BROWSER_INSTANCE_URLS = [
 
 @app.get("/")
 async def root():
-    try:
-        print("Waking up browser instances...")
-        tasks = [wait_for_browser(url) for url in BROWSER_INSTANCE_URLS]
-        results_list = await asyncio.gather(*tasks)
-        results = dict(zip(BROWSER_INSTANCE_URLS, results_list))
-        print("Browser instances woken up.")
-        return {"status": "ok", "browser_instances": results}
-    except Exception as e:
-        print(f"Error waking up browser instances: {e}")
-        return {"status": "error", "message": str(e)}
+    results = {}
+    for url in BROWSER_INSTANCE_URLS:
+        print(f"Waking up {url}...")
+        for _ in range(5): 
+            try:
+                resp = requests.get(url, timeout=300.0)
+                if resp.text.strip() == "Running":
+                    results[url] = "Running"
+                    break
+                else:
+                    results[url] = f"Not running. Response: {resp.text}"
+            except Exception as e:
+                results[url] = f"Error: {str(e)}"
+            
+            time.sleep(5)
+        else:
+            results[url] = "Failed after retries"
+    return {"status": "ok", "browser_instances": results}
+    # try:
+    #     print("Waking up browser instances...")
+    #     tasks = [wait_for_browser(url) for url in BROWSER_INSTANCE_URLS]
+    #     results_list = await asyncio.gather(*tasks)
+    #     results = dict(zip(BROWSER_INSTANCE_URLS, results_list))
+    #     print("Browser instances woken up.")
+    #     return {"status": "ok", "browser_instances": results}
+    # except Exception as e:
+    #     print(f"Error waking up browser instances: {e}")
+    #     return {"status": "error", "message": str(e)}
 
     # results = {}
 
