@@ -8,7 +8,7 @@ from api.core.config import settings
 from api.utils.cold_start import wait_for_browser
 import redis.asyncio as redis
 from concurrent.futures import ThreadPoolExecutor, as_completed
-import asyncio, time, requests
+import asyncio, time, requests, httpx
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -56,23 +56,46 @@ BROWSER_INSTANCE_URLS = [
 @app.get("/")
 async def root():
     results = {}
-    for url in BROWSER_INSTANCE_URLS:
-        print(f"Waking up {url}...")
-        for _ in range(5): 
-            try:
-                resp = requests.get(url, timeout=300.0)
-                if resp.text.strip() == "Running":
-                    results[url] = "Running"
-                    break
-                else:
-                    results[url] = f"Not running. Response: {resp.text}"
-            except Exception as e:
-                results[url] = f"Error: {str(e)}"
-            
-            time.sleep(5)
-        else:
-            results[url] = "Failed after retries"
+    async with httpx.AsyncClient(timeout=300.0) as client:
+        for url in BROWSER_INSTANCE_URLS:
+            print(f"Waking up {url}...")
+            for attempt in range(5): 
+                try:
+                    resp = await client.get(url)
+                    if resp.text.strip() == "Running":
+                        results[url] = "Running"
+                        break
+                    else:
+                        results[url] = f"Not running. Response: {resp.text}"
+                except Exception as e:
+                    results[url] = f"Error: {str(e)}"
+
+                # exponential backoff
+                wait_time = 2 ** attempt
+                print(f"Retrying {url} in {wait_time}s...")
+                await asyncio.sleep(wait_time)
+
+            else:
+                results[url] = "Failed after retries"
+
     return {"status": "ok", "browser_instances": results}
+    # for url in BROWSER_INSTANCE_URLS:
+    #     print(f"Waking up {url}...")
+    #     for _ in range(5): 
+    #         try:
+    #             resp = requests.get(url, timeout=300.0)
+    #             if resp.text.strip() == "Running":
+    #                 results[url] = "Running"
+    #                 break
+    #             else:
+    #                 results[url] = f"Not running. Response: {resp.text}"
+    #         except Exception as e:
+    #             results[url] = f"Error: {str(e)}"
+            
+    #         time.sleep(5)
+    #     else:
+    #         results[url] = "Failed after retries"
+    # return {"status": "ok", "browser_instances": results}
     # try:
     #     print("Waking up browser instances...")
     #     tasks = [wait_for_browser(url) for url in BROWSER_INSTANCE_URLS]
